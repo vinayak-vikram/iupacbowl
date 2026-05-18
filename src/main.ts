@@ -1,60 +1,55 @@
-import './style.css'
-import typescriptLogo from './assets/typescript.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import { setupCounter } from './counter.ts'
+import './style.css';
+import { fetchRandomCompound, type Compound } from './pubchem';
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${typescriptLogo}" class="framework" alt="TypeScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
+const app = document.querySelector<HTMLDivElement>('#app')!;
+
+app.innerHTML = `
+  <div id="quiz">
+    <h1>chem practice</h1>
+
+    <div id="controls">
+      <label for="complexity">Complexity: <span id="complexity-value">5</span></label>
+      <input type="range" id="complexity" min="1" max="10" value="5" />
+      <button id="fetch-btn">Fetch Compound</button>
+    </div>
+
+    <div id="result" hidden>
+      <div id="iupac-name"></div>
+      <div id="meta"></div>
+    </div>
+
+    <div id="error" hidden></div>
   </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+`;
 
-<div class="ticks"></div>
+const slider = document.querySelector<HTMLInputElement>('#complexity')!;
+const complexityLabel = document.querySelector<HTMLSpanElement>('#complexity-value')!;
+const fetchBtn = document.querySelector<HTMLButtonElement>('#fetch-btn')!;
+const resultEl = document.querySelector<HTMLDivElement>('#result')!;
+const iupacNameEl = document.querySelector<HTMLDivElement>('#iupac-name')!;
+const metaEl = document.querySelector<HTMLDivElement>('#meta')!;
+const errorEl = document.querySelector<HTMLDivElement>('#error')!;
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://www.typescriptlang.org" target="_blank">
-          <img class="button-icon" src="${typescriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+slider.addEventListener('input', () => {
+  complexityLabel.textContent = slider.value;
+});
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+fetchBtn.addEventListener('click', async () => {
+  fetchBtn.disabled = true;
+  fetchBtn.textContent = 'Fetching...';
+  resultEl.hidden = true;
+  errorEl.hidden = true;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+  try {
+    const compound: Compound = await fetchRandomCompound(Number(slider.value));
+    iupacNameEl.textContent = compound.iupacName;
+    metaEl.textContent = `${compound.molecularFormula}, MW ${compound.molecularWeight}, ${compound.heavyAtomCount} heavy atoms, CID ${compound.cid}`;
+    resultEl.hidden = false;
+  } catch (err) {
+    errorEl.textContent = String(err);
+    errorEl.hidden = false;
+  } finally {
+    fetchBtn.disabled = false;
+    fetchBtn.textContent = 'Fetch Compound';
+  }
+});
