@@ -106,6 +106,13 @@ button {
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
+#structure {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: #fff;
+}
+
 #result {
   display: flex;
   flex-direction: column;
