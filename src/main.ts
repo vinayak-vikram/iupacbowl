@@ -1,4 +1,5 @@
 import './style.css';
+import SmilesDrawer from 'smiles-drawer';
 import { fetchRandomCompound, type Compound } from './pubchem';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -13,7 +14,7 @@ app.innerHTML = `
       <button id="fetch-btn">Fetch Compound</button>
     </div>
 
-    <img id="structure" hidden alt="2D structure" />
+    <canvas id="structure" hidden></canvas>
 
     <div id="result" hidden>
       <div id="iupac-name"></div>
@@ -27,11 +28,14 @@ app.innerHTML = `
 const slider = document.querySelector<HTMLInputElement>('#complexity')!;
 const complexityLabel = document.querySelector<HTMLSpanElement>('#complexity-value')!;
 const fetchBtn = document.querySelector<HTMLButtonElement>('#fetch-btn')!;
-const structureImg = document.querySelector<HTMLImageElement>('#structure')!;
+const canvas = document.querySelector<HTMLCanvasElement>('#structure')!;
 const resultEl = document.querySelector<HTMLDivElement>('#result')!;
 const iupacNameEl = document.querySelector<HTMLDivElement>('#iupac-name')!;
 const metaEl = document.querySelector<HTMLDivElement>('#meta')!;
 const errorEl = document.querySelector<HTMLDivElement>('#error')!;
+
+const drawer = new SmilesDrawer.Drawer({ width: 600, height: 400 });
+const dark = window.matchMedia('(prefers-color-scheme: dark)');
 
 slider.addEventListener('input', () => {
   complexityLabel.textContent = slider.value;
@@ -41,13 +45,19 @@ fetchBtn.addEventListener('click', async () => {
   fetchBtn.disabled = true;
   fetchBtn.textContent = 'Fetching...';
   resultEl.hidden = true;
-  structureImg.hidden = true;
+  canvas.hidden = true;
   errorEl.hidden = true;
 
   try {
     const compound: Compound = await fetchRandomCompound(Number(slider.value));
-    structureImg.src = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${compound.cid}/PNG`;
-    structureImg.hidden = false;
+    SmilesDrawer.parse(
+      compound.smiles,
+      (tree: unknown) => {
+        canvas.hidden = false;
+        drawer.draw(tree, canvas, dark.matches ? 'dark' : 'light', false);
+      },
+      () => { canvas.hidden = true; }
+    );
     iupacNameEl.textContent = compound.iupacName;
     metaEl.textContent = `${compound.molecularFormula}, MW ${compound.molecularWeight}, ${compound.heavyAtomCount} heavy atoms, CID ${compound.cid}`;
     resultEl.hidden = false;

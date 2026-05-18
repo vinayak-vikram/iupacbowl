@@ -111,6 +111,11 @@ button {
   height: auto;
   border-radius: 8px;
   background: #fff;
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  #structure { background: #1a1a2e; }
 }
 
 #result {
