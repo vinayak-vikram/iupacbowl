@@ -5,12 +5,16 @@ export const FUNCTIONAL_GROUPS = [
   { id: 'alkyne',          label: 'Alkyne',           smarts: '[CX2]#[CX2]' },
   { id: 'aromatic',        label: 'Aromatic',         smarts: 'a' },
   { id: 'halide',          label: 'Halide',           smarts: '[F,Cl,Br,I]' },
+  // alcohol: sp3 C-OH only; phenol and carboxylic acid OH are separate
   { id: 'alcohol',         label: 'Alcohol',          smarts: '[OX2H][CX4]' },
   { id: 'phenol',          label: 'Phenol',           smarts: '[OX2H][c]' },
-  { id: 'ether',           label: 'Ether',            smarts: '[OD2]([#6])[#6]' },
+  // ether: O bonded to two carbons, excluding ester/anhydride O (adjacent to C=O)
+  { id: 'ether',           label: 'Ether',            smarts: '[OD2;!$(OC=O)]([#6])[#6]' },
   { id: 'epoxide',         label: 'Epoxide',          smarts: '[OX2r3]' },
   { id: 'amine',           label: 'Amine',            smarts: '[NX3;!$(NC=O);!$([N+](=O)[O-]);!$(N#*)]' },
-  { id: 'imine',           label: 'Imine',            smarts: '[CX3;$([H0][#6]),$([H1])]=[NX2;!$(N~[!#6])]' },
+  { id: 'quat_ammonium',  label: 'Quat. ammonium',  smarts: '[NX4+H0;$([N]([#6])([#6])([#6])[#6])]' },
+  // imine: non-aromatic C=N plus aromatic C:N (pyridine/quinoline/acridine-type)
+  { id: 'imine',           label: 'Imine',            smarts: '[$([CX3]=[NX2]),$([c]:[nX2])]' },
   { id: 'nitro',           label: 'Nitro',            smarts: '[$([NX3](=O)=O),$([NX3+](=O)[O-])]' },
   { id: 'nitrile',         label: 'Nitrile',          smarts: '[NX1]#[CX2]' },
   { id: 'thiol',           label: 'Thiol',            smarts: '[SX2H]' },
