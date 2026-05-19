@@ -7,6 +7,9 @@ export interface Compound {
   heavyAtomCount: number;
   molecularWeight: number;
   smiles: string;
+  hbondDonors: number;
+  hbondAcceptors: number;
+  stereocenters: number;
 }
 
 const WEIGHTS: Record<string, number> = { C: 0.1, H: 0 };
@@ -33,9 +36,10 @@ function sequentialCids(count: number, maxCid: number): number[] {
   return Array.from({ length: count }, (_, i) => start + i);
 }
 
+const PROPS = 'IUPACName,MolecularFormula,HeavyAtomCount,MolecularWeight,IsomericSMILES,HBondDonorCount,HBondAcceptorCount,DefinedAtomStereoCount';
+
 async function batchFetch(cids: number[]): Promise<Compound[]> {
-  const props = 'IUPACName,MolecularFormula,HeavyAtomCount,MolecularWeight,IsomericSMILES';
-  const url = `${BASE}/compound/cid/${cids.join(',')}/property/${props}/JSON`;
+  const url = `${BASE}/compound/cid/${cids.join(',')}/property/${PROPS}/JSON`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();
@@ -49,18 +53,37 @@ async function batchFetch(cids: number[]): Promise<Compound[]> {
       heavyAtomCount: r.HeavyAtomCount,
       molecularWeight: r.MolecularWeight,
       smiles: r.SMILES,
+      hbondDonors: r.HBondDonorCount ?? 0,
+      hbondAcceptors: r.HBondAcceptorCount ?? 0,
+      stereocenters: r.DefinedAtomStereoCount ?? 0,
     }));
 }
 
 export async function fetchRandomCompound(complexity: number = 5): Promise<Compound> {
   const { maxCid, maxHeavyAtoms } = complexityToConstraints(complexity);
-
   for (let attempt = 0; attempt < 8; attempt++) {
     const cids = sequentialCids(200, maxCid);
     const compounds = await batchFetch(cids);
     const valid = compounds.filter((c) => getWeight(c.molecularFormula) <= maxHeavyAtoms);
     if (valid.length > 0) return valid[Math.floor(Math.random() * valid.length)];
   }
-
   throw new Error('no satisfactory compound found');
+}
+
+export async function fetchCompoundBatch(complexity: number, count: number): Promise<Compound[]> {
+  const { maxCid, maxHeavyAtoms } = complexityToConstraints(complexity);
+  const results: Compound[] = [];
+  const seen = new Set<number>();
+  for (let attempt = 0; attempt < 10 && results.length < count; attempt++) {
+    const cids = sequentialCids(200, maxCid);
+    const compounds = await batchFetch(cids);
+    const valid = compounds.filter((c) => getWeight(c.molecularFormula) <= maxHeavyAtoms && !seen.has(c.cid));
+    for (const c of valid) {
+      if (results.length >= count) break;
+      results.push(c);
+      seen.add(c.cid);
+    }
+  }
+  if (results.length < count) throw new Error('not enough compounds found');
+  return results;
 }
