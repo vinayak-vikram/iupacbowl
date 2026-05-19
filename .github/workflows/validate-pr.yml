@@ -15,4 +15,4 @@ jobs:
       - name: Validate functional groups changes
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: node .github/scripts/validate-fg.js
+        run: node .github/scripts/validate-fg.cjs
