@@ -23,6 +23,7 @@ export const FUNCTIONAL_GROUPS = [
   { id: 'ketone',          label: 'Ketone',           smarts: '[CX3](=O)([#6])[#6]' },
   { id: 'carboxylic_acid', label: 'Carboxylic acid',  smarts: '[CX3](=O)[OX2H1]' },
   { id: 'ester',           label: 'Ester',            smarts: '[CX3](=O)[OX2H0][#6]' },
+  { id: 'thioester',           label: 'Thioester',            smarts: '[CX3](=S)[SX2H0][#6]' },
   { id: 'enol',            label: 'Enol',             smarts: '[OX2H][CX3]=[CX3]' },
   { id: 'acid_halide',     label: 'Acid halide',      smarts: '[CX3](=O)[F,Cl,Br,I]' },
   { id: 'amide',           label: 'Amide',            smarts: '[CX3](=O)[NX3]' },
